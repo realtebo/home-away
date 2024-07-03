@@ -6,6 +6,7 @@ import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+// usata dal form di creazione del profilo app/profile/create/page.tsx
 export const createProfileAction = async (
   prevState: any,
   formData: FormData
@@ -40,7 +41,7 @@ export const createProfileAction = async (
   redirect('/');
 };
 
-
+// usato dal componente della navbar che mostra l'icona dell'utente
 export const fetchProfileImage = async () => {
   const user = await currentUser();
   if (!user) return null;
