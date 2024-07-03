@@ -1,7 +1,7 @@
 "use server";
 
 import db from "./db";
-import { profileSchema, validateWithZodSchema } from "./schemas";
+import { imageSchema, profileSchema, validateWithZodSchema } from "./schemas";
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -101,6 +101,15 @@ export const updateProfileAction = async (
   } catch (error) {
     return renderError(error);
   }
+};
+
+export const updateProfileImageAction = async (
+  prevState: any,
+  formData: FormData
+): Promise<{ message: string }> => {
+  const image = formData.get("image") as File;
+  const validatedFields = validateWithZodSchema(imageSchema, { image });
+  return { message: "Profile image updated successfully" };
 };
 
 // utility ad uso interno
