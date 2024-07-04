@@ -19,5 +19,27 @@ model Profile {
   profileImage String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  // relazione 1 a n tra un profilo e le sue proprietà (inteso come 'case in affitto')
+  properties      Property[]
 }
 
+model Property {
+  id          String     @id @default(uuid())
+  name        String
+  tagline     String
+  category    String
+  image       String
+  country     String
+  description String
+  price       Int
+  guests      Int
+  bedrooms    Int
+  beds        Int
+  baths       Int
+  amenities   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  profileId   String
+  // relazione n a 1, il campo profileId del modello Property punta al campo clerkId del modello Profile
+  profile     Profile    @relation(fields: [profileId], references: [clerkId], onDelete: Cascade)
+}
