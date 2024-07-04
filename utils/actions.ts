@@ -5,6 +5,7 @@ import { imageSchema, profileSchema, validateWithZodSchema } from "./schemas";
 import { auth, clerkClient, currentUser } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { uploadImage } from "./supabase";
 
 // usata dal form di creazione del profilo app/profile/create/page.tsx
 export const createProfileAction = async (
@@ -106,10 +107,26 @@ export const updateProfileAction = async (
 export const updateProfileImageAction = async (
   prevState: any,
   formData: FormData
-): Promise<{ message: string }> => {
-  const image = formData.get("image") as File;
-  const validatedFields = validateWithZodSchema(imageSchema, { image });
-  return { message: "Profile image updated successfully" };
+) => {
+  const user = await getAuthUser();
+  try {
+    const image = formData.get('image') as File;
+    const validatedFields = validateWithZodSchema(imageSchema, { image });
+    const fullPath = await uploadImage(validatedFields.image);
+
+    await db.profile.update({
+      where: {
+        clerkId: user.id,
+      },
+      data: {
+        profileImage: fullPath,
+      },
+    });
+    revalidatePath('/profile');
+    return { message: 'Profile image updated successfully' };
+  } catch (error) {
+    return renderError(error);
+  }
 };
 
 // utility ad uso interno
