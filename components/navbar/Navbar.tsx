@@ -1,7 +1,7 @@
 import LinksDropdown from "./LinksDropdown";
 import DarkMode from "./DarkMode";
 import Logo from "./Logo";
-import NavSearch from "./Navsearch";
+import NavSearch from "./NavSearch";
 function Navbar() {
   return (
     <nav className="border-b">
