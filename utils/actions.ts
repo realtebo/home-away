@@ -271,3 +271,17 @@ export const fetchFavorites = async () => {
   });
   return favorites.map((favorite) => favorite.property);
 };
+
+// ad uso della pagina di dettaglio della singola proprietà
+export const fetchPropertyDetails = (id: string) => {
+  return db.property.findUnique({
+    where: {
+      id,
+    },
+    // Questo fa si che venga precaricata la relazione
+    // che dà i dati del proprietario della casa
+    include: {
+      profile: true,
+    },
+  });
+};
