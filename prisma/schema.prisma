@@ -20,7 +20,10 @@ model Profile {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   // relazione 1 a n tra un profilo e le sue proprietà (inteso come 'case in affitto')
-  properties      Property[]
+  properties   Property[]
+  // relazione n a 1, il campo id del modello Profile è puntato dal campo ProfileId del modello Favorite
+  favorites    Favorite[]
+
 }
 
 model Property {
@@ -40,6 +43,22 @@ model Property {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   profileId   String
-  // relazione n a 1, il campo profileId del modello Property punta al campo clerkId del modello Profile
+  // relazione n a 1, il campo profileId del modello Property è puntato dal campo clerkId del modello Profile
   profile     Profile    @relation(fields: [profileId], references: [clerkId], onDelete: Cascade)
+  // relazione n a 1, il campo id del modello Property è puntato dal campo PropertyId del modello Favorite
+  favorites   Favorite[]
+}
+
+// pivot n-a-n tra profile e property con info aggiuntive (date di creazione e modifica)
+model Favorite {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  // 1 a n tra favorite e profile
+  profile   Profile  @relation(fields: [profileId], references: [clerkId], onDelete: Cascade)
+  profileId String
+  // 1 a n tra favorite e property
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+
 }
