@@ -24,6 +24,7 @@ model Profile {
   // relazione n a 1, il campo id del modello Profile è puntato dal campo ProfileId del modello Favorite
   favorites    Favorite[]
 
+  reviews Review[]
 }
 
 model Property {
@@ -47,6 +48,8 @@ model Property {
   profile     Profile    @relation(fields: [profileId], references: [clerkId], onDelete: Cascade)
   // relazione n a 1, il campo id del modello Property è puntato dal campo PropertyId del modello Favorite
   favorites   Favorite[]
+
+  reviews Review[]
 }
 
 // pivot n-a-n tra profile e property con info aggiuntive (date di creazione e modifica)
@@ -62,3 +65,16 @@ model Favorite {
   propertyId String
 
 }
+
+model Review {
+  id        String   @id @default(uuid())
+  profile   Profile  @relation(fields: [profileId], references: [clerkId], onDelete: Cascade)
+  profileId String
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
