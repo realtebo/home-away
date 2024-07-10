@@ -283,6 +283,12 @@ export const fetchPropertyDetails = (id: string) => {
     // che dà i dati del proprietario della casa
     include: {
       profile: true,
+      bookings: {
+        select: {
+          checkIn: true,
+          checkOut: true,
+        },
+      },
     },
   });
 };

@@ -7,7 +7,7 @@ import ImageContainer from "@/components/properties/ImageContainer";
 import PropertyDetails from "@/components/properties/PropertyDetails";
 import ShareButton from "@/components/properties/ShareButton";
 import UserInfo from "@/components/properties/UserInfo";
-import BookingCalendar from "@/components/properties/booking/BookingCalendar";
+// import BookingCalendar from "@/components/properties/booking/BookingCalendar";
 import PropertyReviews from "@/components/reviews/PropertyReviews";
 import SubmitReview from "@/components/reviews/SubmitReview";
 import { Separator } from "@/components/ui/separator";
@@ -39,6 +39,8 @@ async function PropertyDetailsPage({ params }: { params: { id: string } }) {
   const reviewDoesNotExist =
     userId && isNotOwner && !(await findExistingReview(userId, property.id));
 
+  
+
   return (
     <section>
       <BreadCrumbs name={property.name} />
@@ -66,8 +68,8 @@ async function PropertyDetailsPage({ params }: { params: { id: string } }) {
           <DynamicMap countryCode={property.country} />
         </div>
         <div className="lg:col-span-4 flex flex-col items-center">
-          {/* calendar */}
-          <BookingCalendar />
+          {/* vecchio calendar */}
+          {/* <BookingCalendar /> */}
         </div>
       </section>
 
