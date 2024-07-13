@@ -13,6 +13,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { uploadImage } from "./supabase";
 import { calculateTotals } from "./calculateTotals";
+import { formatDate } from "./format";
 
 // usata dal form di creazione del profilo app/profile/create/page.tsx
 export const createProfileAction = async (
@@ -416,6 +417,14 @@ export const createBookingAction = async (prevState: {
 }) => {
   const user = await getAuthUser();
 
+  await db.booking.deleteMany({
+    where: {
+      profileId: user.id,
+      paymentStatus: false,
+    },
+  });
+
+  let bookingId: null | string = null;
   const { propertyId, checkIn, checkOut } = prevState;
   const property = await db.property.findUnique({
     where: { id: propertyId },
@@ -441,10 +450,13 @@ export const createBookingAction = async (prevState: {
         propertyId,
       },
     });
+
+    bookingId = booking.id;
   } catch (error) {
     return renderError(error);
   }
-  redirect("/bookings");
+  //redirect("/bookings");
+  redirect(`/checkout?bookingId=${bookingId}`);
 };
 
 export const fetchBookings = async () => {
@@ -452,6 +464,7 @@ export const fetchBookings = async () => {
   const bookings = await db.booking.findMany({
     where: {
       profileId: user.id,
+      paymentStatus: true,
     },
     include: {
       property: {
@@ -506,6 +519,7 @@ export const fetchRentals = async () => {
       const totalNightsSum = await db.booking.aggregate({
         where: {
           propertyId: rental.id,
+          paymentStatus: true,
         },
         _sum: {
           totalNights: true,
@@ -515,6 +529,7 @@ export const fetchRentals = async () => {
       const orderTotalSum = await db.booking.aggregate({
         where: {
           propertyId: rental.id,
+          paymentStatus: true,
         },
         _sum: {
           orderTotal: true,
@@ -622,6 +637,7 @@ export const fetchReservations = async () => {
 
   const reservations = await db.booking.findMany({
     where: {
+      paymentStatus: true,
       property: {
         profileId: user.id,
       },
@@ -643,4 +659,89 @@ export const fetchReservations = async () => {
     },
   });
   return reservations;
+};
+
+const getAdminUser = async () => {
+  const user = await getAuthUser();
+  if (user.id !== process.env.ADMIN_USER_ID) redirect("/");
+  return user;
+};
+
+export const fetchStats = async () => {
+  await getAdminUser();
+
+  const usersCount = await db.profile.count({});
+  const propertiesCount = await db.property.count();
+  const bookingsCount = await db.booking.count({
+    where: {
+      paymentStatus: true,
+    },
+  });
+
+  return {
+    usersCount,
+    propertiesCount,
+    bookingsCount,
+  };
+};
+
+export const fetchChartsData = async () => {
+  await getAdminUser();
+  const date = new Date();
+  date.setMonth(date.getMonth() - 6);
+  const sixMonthsAgo = date;
+
+  const bookings = await db.booking.findMany({
+    where: {
+      paymentStatus: true,
+      createdAt: {
+        gte: sixMonthsAgo,
+      },
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
+  let bookingsPerMonth = bookings.reduce(
+    (total, current) => {
+      const date = formatDate(current.createdAt, true);
+
+      const existingEntry = total.find((entry) => entry.date === date);
+      if (existingEntry) {
+        existingEntry.count += 1;
+      } else {
+        total.push({ date, count: 1 });
+      }
+      return total;
+    },
+    [] as Array<{ date: string; count: number }>
+  );
+  return bookingsPerMonth;
+};
+
+export const fetchReservationStats = async () => {
+  const user = await getAuthUser();
+  const properties = await db.property.count({
+    where: {
+      profileId: user.id,
+    },
+  });
+
+  const totals = await db.booking.aggregate({
+    _sum: {
+      orderTotal: true,
+      totalNights: true,
+    },
+    where: {
+      property: {
+        profileId: user.id,
+      },
+    },
+  });
+
+  return {
+    properties,
+    nights: totals._sum.totalNights || 0,
+    amount: totals._sum.orderTotal || 0,
+  };
 };
